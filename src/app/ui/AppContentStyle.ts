@@ -49,7 +49,7 @@ const AppContentStyle = StyleSheet.create({
         alignItems: "center",
     },
     bottomBarIcon: {
-        backgroundColor: "#bbb",
+        tintColor: "#bbb",
         height: 42.0,
         width: 42.0,
     },
