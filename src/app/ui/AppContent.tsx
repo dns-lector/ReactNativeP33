@@ -15,6 +15,7 @@ export default function AppContent() {
 
     const navigate = (route:IRoute):void => {
         if(route.slug == "-1") {
+            // console.log(`history.length = ${history.length}`);
             if(history.length > 0) {
                 const prevPage = history.pop();
                 setPage(prevPage!);
@@ -22,6 +23,7 @@ export default function AppContent() {
             }
             else {
                 BackHandler.exitApp();
+                // console.log("BackHandler.exitApp();")
             }
         }
         else if(route.slug != page.slug) {
@@ -35,17 +37,22 @@ export default function AppContent() {
     useEffect(() => {
         const handler = BackHandler.addEventListener(
             'hardwareBackPress', () => {
+                // console.log("back press");
                 navigate({slug: '-1'});
                 return true;
             });
         return () => handler.remove();    
-    }, []);
+    }, [history]);
 
     useEffect(() => {console.log(history)}, [history]);
 
     return <View style={AppContentStyle.container}>
         <View style={AppContentStyle.topBar}>
-            <View style={AppContentStyle.topBarIcon}></View>
+            <TouchableOpacity onPress={() => navigate({slug: '-1'})}>
+                <Text style={AppContentStyle.topBarBack}>
+                    &lt;
+                </Text>    
+            </TouchableOpacity>
             <Text style={AppContentStyle.topBarTitle}>Mobile-P33</Text>
             <View style={AppContentStyle.topBarIcon}></View>
         </View>
@@ -74,7 +81,7 @@ export default function AppContent() {
                 <Image style={AppContentStyle.bottomBarIcon} 
                     source={require('../asset/calc.png')}/>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigate({slug: '-1'})}>
+            <TouchableOpacity onPress={() => navigate({slug: 'home'})}>
                 <Image style={AppContentStyle.bottomBarIcon} 
                     source={require('../asset/home.png')}/>
             </TouchableOpacity>
