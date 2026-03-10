@@ -1,8 +1,8 @@
 import { StyleSheet, Text, TouchableOpacity } from "react-native";
 import { CalcButtonTypes } from "../model/CalcButtonTypes";
 
-export default function CalcButton({buttonType, text} :
-    {buttonType?: CalcButtonTypes, text: string}
+export default function CalcButton({buttonType, text, onPress} :
+    {buttonType?: CalcButtonTypes, text: string, onPress?: (text:string) => void}
 ) {
     const containerStyle = 
         buttonType == CalcButtonTypes.digit ? CalcButtonStyle.digitContainer
@@ -14,7 +14,8 @@ export default function CalcButton({buttonType, text} :
       : buttonType == CalcButtonTypes.equal ? CalcButtonStyle.equalText
       : CalcButtonStyle.funcText;
 
-    return <TouchableOpacity style={[CalcButtonStyle.container, containerStyle]}>
+    return <TouchableOpacity style={[CalcButtonStyle.container, containerStyle]} 
+                onPress={() => { if(onPress) onPress(text) }}>
         <Text style={[CalcButtonStyle.text, textStyle]}>{text}</Text>
     </TouchableOpacity>;
 }

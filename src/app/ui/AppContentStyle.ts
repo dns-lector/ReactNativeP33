@@ -19,10 +19,11 @@ const AppContentStyle = StyleSheet.create({
         alignItems: "center",
     },
     topBarBack: {
-        fontSize: 42.0,
+        fontSize: 28.0,
         color: Colors.primaryTextColor,
-        marginLeft: 10.0,
-        marginTop: -6.0,
+        fontWeight: 700,
+        marginLeft: 2.0,
+        // marginTop: -2.0,
     },
     topBarIcon: {
         backgroundColor: "#bbb",

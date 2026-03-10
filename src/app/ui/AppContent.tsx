@@ -50,7 +50,7 @@ export default function AppContent() {
         <View style={AppContentStyle.topBar}>
             <TouchableOpacity onPress={() => navigate({slug: '-1'})}>
                 <Text style={AppContentStyle.topBarBack}>
-                    &lt;
+                    〈
                 </Text>    
             </TouchableOpacity>
             <Text style={AppContentStyle.topBarTitle}>Mobile-P33</Text>

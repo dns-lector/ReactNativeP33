@@ -20,7 +20,7 @@ const CalcStyle = StyleSheet.create({
     },
     result: {
         color: "#F7FFFF",
-        fontSize: 60.0,
+        // fontSize: 60.0,
         textAlign: "right",
         marginRight: 10.0,
         marginVertical: 15.0,
