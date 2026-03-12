@@ -4,67 +4,109 @@ import CalcButton from "./ui/CalcButton";
 import { CalcButtonTypes } from "./model/CalcButtonTypes";
 import { useState } from "react";
 
-const maxDigits = 3;
+const maxDigits = 20;
 const dotSymbol = ",";
-const minusSymbol = "-";
+const minusSymbol = "\u2212";
+
+interface ICalcState {
+    expression: string,
+    result: string,
+    isNeedClear: boolean,
+};
+
+const initCalcState:ICalcState = {
+    expression: "",
+    result: "0",
+    isNeedClear: true,
+}
 
 export default function Calc() {
-    const [expression, setExpression] = useState<string>("");
-    const [result, setResult] = useState<string>("0");
+    const [calcState, setCalcState] = useState<ICalcState>(initCalcState);
+
+    const resToNum = (res:string):number => { 
+        return Number(res
+            .replace(dotSymbol, '.')
+            .replace(minusSymbol, '-')
+        );
+    };
+
+    const numToRes = (num:number):string => {
+        return num.toString()
+            .replace('.', dotSymbol)
+            .replace('-', minusSymbol);
+    };
+
+    const invClick = () => {
+        let arg = resToNum(calcState.result);
+        arg = 1.0 / arg;
+        setCalcState({...calcState,
+            result: numToRes(arg),
+            expression: `1 / ${calcState.result} =`,
+            isNeedClear: true
+        });
+    };
 
     const digitClick = (text:string) => {
-        let res = result;
-        if(res == '0') {
+        let res = calcState.result;
+        if(res == '0' || calcState.isNeedClear) {
             res = '';
         }
-
         if(res.length < maxDigits + (res.includes(dotSymbol) ? 1 : 0)) {
             res += text;
         }
-        setResult(res);
+        setCalcState({...calcState,
+            result: res,
+            isNeedClear: false,
+        });
     };
 
     const clearClick = () => {
-        setResult("0");
-    }
+        setCalcState(initCalcState);
+    };
 
     const clearEntryClick = () => {
-        setResult("0");
-    }
+       setCalcState({...calcState,
+            result: "0",
+       });
+    };
 
     const backspaceClick = () => {
         // відкорегувати на залишок символа "-" (він не повинен залишатись сам)
-        let len = result.length;
-        let res = len > 1 ? result.substring(0, len - 1) : "0";
+        let len = calcState.result.length;
+        let res = len > 1 ? calcState.result.substring(0, len - 1) : "0";
         if(res == minusSymbol) {
             res = '0';
         }
-        setResult(res);
+        setCalcState({...calcState,
+            result: res,
+       });
     }
 
     const dotClick = (text:string) => {   // десятична точка: додається в кінець АЛЕ якщо її немає раніше
-        if(!result.includes(text)) {
-            setResult(result + text);
+        if(!calcState.result.includes(text)) {
+            setCalcState({...calcState,
+                result: calcState.result + text,
+            });
         }
     };
 
     const pmClick = () => {   // зміна знаку: додається "-" до початку числа, якщо його немає, інакше прибирається
-        if(result == '0') return;
+        if(calcState.result == '0') return;
+        let res = calcState.result.startsWith(minusSymbol)
+        ? calcState.result.substring(1)
+        : minusSymbol + calcState.result;
 
-        if(result.startsWith(minusSymbol)) {
-            setResult(result.substring(1));
-        }
-        else {
-            setResult(minusSymbol + result);
-        }
+        setCalcState({...calcState,
+            result: res,
+        });
     };
 
-    const resultFontSize = result.length <= 11 ? 60.0 : 660.0 / result.length;
+    const resultFontSize = calcState.result.length <= 11 ? 60.0 : 660.0 / calcState.result.length;
 
     return <View style={CalcStyle.pageContainer}>
         <Text style={CalcStyle.pageTitle}>Calculator</Text>
-        <Text style={CalcStyle.expression}>{expression}</Text>
-        <Text style={[CalcStyle.result, {fontSize: resultFontSize}]}>{result}</Text>
+        <Text style={CalcStyle.expression}>{calcState.expression}</Text>
+        <Text style={[CalcStyle.result, {fontSize: resultFontSize}]}>{calcState.result}</Text>
         <View style={CalcStyle.memoryRow}>
             <Text>Memory buttons</Text>
         </View>
@@ -77,7 +119,7 @@ export default function Calc() {
                 <CalcButton text={"\u232B"} onPress={backspaceClick}/>
             </View>
              <View style={CalcStyle.buttonsRow}>
-                <CalcButton text={"\u00b9/\u2093"} />
+                <CalcButton text={"\u00b9/\u2093"} onPress={invClick}/>
                 <CalcButton text={"x\u00b2"} />
                 <CalcButton text={"\u00B2\u221ax\u0305"} />
                 <CalcButton text={"\u00F7"} />
@@ -120,4 +162,7 @@ export default function Calc() {
     (Юнікод - короткими пробілами), їх так само не
     враховувати в кількості цифр: 12 345 567.2
     (переконатись, що при стиранні цифр пробіли переставляються)
+str = "Hello, World!"
+str.substring(2) - "llo, World!"
+str.substring(3,7) - "lo, "
 */
