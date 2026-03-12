@@ -3,6 +3,7 @@ import CalcStyle from "./ui/CalcStyle";
 import CalcButton from "./ui/CalcButton";
 import { CalcButtonTypes } from "./model/CalcButtonTypes";
 import { useState } from "react";
+import { CalcOperations } from "./model/CalcOperations";
 
 const maxDigits = 20;
 const dotSymbol = ",";
@@ -12,16 +13,46 @@ interface ICalcState {
     expression: string,
     result: string,
     isNeedClear: boolean,
+    operation?: CalcOperations,
+    prevArgument?: number,
+    isNeedClearEntry: boolean,
 };
 
 const initCalcState:ICalcState = {
     expression: "",
     result: "0",
     isNeedClear: true,
+    isNeedClearEntry: false,
 }
 
 export default function Calc() {
     const [calcState, setCalcState] = useState<ICalcState>(initCalcState);
+
+    const equalClick = () => {
+        if(!calcState.operation) return;
+        setCalcState({...calcState,
+            result: numToRes(
+                calcState.operation == CalcOperations.add ? calcState.prevArgument! + resToNum(calcState.result)
+              : calcState.operation == CalcOperations.sub ? calcState.prevArgument! - resToNum(calcState.result)
+              : calcState.operation == CalcOperations.mul ? calcState.prevArgument! * resToNum(calcState.result)
+              : calcState.operation == CalcOperations.div ? calcState.prevArgument! / resToNum(calcState.result)
+              : NaN
+            ),
+            expression: `${calcState.expression} ${calcState.result} =`,
+            operation: undefined,
+            prevArgument: undefined,
+            isNeedClear: true,
+        });
+    };
+ 
+    const operButtonClick = (oper:CalcOperations, symbol:string) => {
+        setCalcState({...calcState,
+            operation: oper,
+            expression: `${calcState.result} ${symbol}`,
+            prevArgument: resToNum(calcState.result),
+            isNeedClearEntry: true,
+        })
+    };
 
     const resToNum = (res:string):number => { 
         return Number(res
@@ -48,7 +79,7 @@ export default function Calc() {
 
     const digitClick = (text:string) => {
         let res = calcState.result;
-        if(res == '0' || calcState.isNeedClear) {
+        if(res == '0' || calcState.isNeedClear || calcState.isNeedClearEntry) {
             res = '';
         }
         if(res.length < maxDigits + (res.includes(dotSymbol) ? 1 : 0)) {
@@ -56,7 +87,9 @@ export default function Calc() {
         }
         setCalcState({...calcState,
             result: res,
+            expression: calcState.isNeedClear ? "" : calcState.expression,
             isNeedClear: false,
+            isNeedClearEntry: false,
         });
     };
 
@@ -122,31 +155,31 @@ export default function Calc() {
                 <CalcButton text={"\u00b9/\u2093"} onPress={invClick}/>
                 <CalcButton text={"x\u00b2"} />
                 <CalcButton text={"\u00B2\u221ax\u0305"} />
-                <CalcButton text={"\u00F7"} />
+                <CalcButton text={"\u00F7"} onPress={(face) => operButtonClick(CalcOperations.div, face)} />
             </View>
              <View style={CalcStyle.buttonsRow}>
                 <CalcButton text="7" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
                 <CalcButton text="8" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
                 <CalcButton text="9" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
-                <CalcButton text={"\u00D7"} />
+                <CalcButton text={"\u00D7"} onPress={(face) => operButtonClick(CalcOperations.mul, face)}/>
             </View>
              <View style={CalcStyle.buttonsRow}>
                 <CalcButton text="4" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
                 <CalcButton text="5" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
                 <CalcButton text="6" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
-                <CalcButton text={"\u2212"} />
+                <CalcButton text={"\u2212"} onPress={(face) => operButtonClick(CalcOperations.sub, face)} />
             </View>
              <View style={CalcStyle.buttonsRow}>
                 <CalcButton text="1" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
                 <CalcButton text="2" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
                 <CalcButton text="3" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
-                <CalcButton text={"\uFF0B"} />
+                <CalcButton text={"\uFF0B"} onPress={(face) => operButtonClick(CalcOperations.add, face)}/>
             </View>
              <View style={CalcStyle.buttonsRow}>
                 <CalcButton text={"\u207a\u2215\u208b"} buttonType={CalcButtonTypes.digit} onPress={pmClick} />
                 <CalcButton text="0" buttonType={CalcButtonTypes.digit} onPress={digitClick} />
                 <CalcButton text={dotSymbol} buttonType={CalcButtonTypes.digit} onPress={dotClick}/>
-                <CalcButton text={"\uFF1D"} buttonType={CalcButtonTypes.equal} />
+                <CalcButton text={"\uFF1D"} buttonType={CalcButtonTypes.equal} onPress={equalClick} />
             </View>
         </View>
     </View>;
@@ -165,4 +198,9 @@ export default function Calc() {
 str = "Hello, World!"
 str.substring(2) - "llo, World!"
 str.substring(3,7) - "lo, "
+
+Д.З. Реалізувати роботу кнопок калькулятора
+піднесення до квадрату
+корень з числа (з перевіркою на додатню величину)
+Додавати скріншоти
 */

@@ -5,4 +5,5 @@ export const CalcOperations = {
   mul: "mul"
 } as const;
 
-export type CalcOperations = typeof CalcOperations[keyof typeof CalcOperations];
+export type CalcOperations = 
+  typeof CalcOperations[keyof typeof CalcOperations];
