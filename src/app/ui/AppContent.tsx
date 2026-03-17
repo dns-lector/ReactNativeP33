@@ -4,6 +4,8 @@ import Home from "../../pages/home/Home";
 import { useEffect, useState } from "react";
 import IRoute from "../../features/model/IRoute";
 import Calc from "../../pages/calc/Calc";
+import { AppContext } from "../../features/context/AppContext";
+import Rate from "../../pages/rate/Rate";
 
 const startPage:IRoute = {
     slug: 'home',
@@ -46,51 +48,54 @@ export default function AppContent() {
         return () => handler.remove();    
     }, [history]);
 
-    return <View style={AppContentStyle.container}>
-        { width < height && 
-            <View style={AppContentStyle.topBar}>
-                <TouchableOpacity onPress={() => navigate({slug: '-1'})}>
-                    <Text style={AppContentStyle.topBarBack}>
-                        〈
-                    </Text>    
-                </TouchableOpacity>
-                <Text style={AppContentStyle.topBarTitle}>Mobile-P33</Text>
-                <View style={AppContentStyle.topBarIcon}></View>
-            </View>
-        }
+    return <AppContext.Provider value={{navigate}}>
+        <View style={AppContentStyle.container}>
+            { width < height && 
+                <View style={AppContentStyle.topBar}>
+                    <TouchableOpacity onPress={() => navigate({slug: '-1'})}>
+                        <Text style={AppContentStyle.topBarBack}>
+                            〈
+                        </Text>    
+                    </TouchableOpacity>
+                    <Text style={AppContentStyle.topBarTitle}>Mobile-P33</Text>
+                    <View style={AppContentStyle.topBarIcon}></View>
+                </View>
+            }
 
-        <View style={AppContentStyle.pageWidget}>
-            { page.slug == "home" ? <Home />
-            : page.slug == "calc" ? <Calc />
-            : <Text>Not Found</Text>
+            <View style={AppContentStyle.pageWidget}>
+                { page.slug == "home" ? <Home />
+                : page.slug == "calc" ? <Calc />
+                : page.slug == "rate" ? <Rate />
+                : <Text>Not Found</Text>
+                }
+            </View>
+
+            { width < height && 
+                <View style={AppContentStyle.bottomBar}>
+                    <TouchableOpacity onPress={() => navigate({slug: 'home'})}>
+                        <Image style={AppContentStyle.bottomBarIcon} 
+                            source={require('../../features/asset/home.png')}/>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigate({slug: 'calc'})}>
+                        <Image style={AppContentStyle.bottomBarIcon} 
+                            source={require('../../features/asset/calc.png')}/>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigate({slug: 'rate'})}>
+                        <Image style={AppContentStyle.bottomBarIcon} 
+                            source={require('../../features/asset/rate.png')}/>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigate({slug: 'calc'})}>
+                        <Image style={AppContentStyle.bottomBarIcon} 
+                            source={require('../../features/asset/calc.png')}/>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => navigate({slug: 'home'})}>
+                        <Image style={AppContentStyle.bottomBarIcon} 
+                            source={require('../../features/asset/home.png')}/>
+                    </TouchableOpacity>
+                </View>
             }
         </View>
-
-        { width < height && 
-            <View style={AppContentStyle.bottomBar}>
-                <TouchableOpacity onPress={() => navigate({slug: 'home'})}>
-                    <Image style={AppContentStyle.bottomBarIcon} 
-                        source={require('../asset/home.png')}/>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigate({slug: 'calc'})}>
-                    <Image style={AppContentStyle.bottomBarIcon} 
-                        source={require('../asset/calc.png')}/>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigate({slug: 'home'})}>
-                    <Image style={AppContentStyle.bottomBarIcon} 
-                        source={require('../asset/home.png')}/>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigate({slug: 'calc'})}>
-                    <Image style={AppContentStyle.bottomBarIcon} 
-                        source={require('../asset/calc.png')}/>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigate({slug: 'home'})}>
-                    <Image style={AppContentStyle.bottomBarIcon} 
-                        source={require('../asset/home.png')}/>
-                </TouchableOpacity>
-            </View>
-        }
-    </View>;
+    </AppContext.Provider>;
 }
 /*
 Д.З. Створити сторінку "404", додати кнопку меню, що імітує
