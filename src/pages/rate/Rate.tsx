@@ -1,4 +1,4 @@
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import RateStyle from "./ui/RateStyle";
 import { useEffect, useState } from "react";
 import INbuRate from "../../entities/NbuRate/model/INbuRate";
@@ -16,8 +16,11 @@ export default function Rate() {
 
     return <View style={RateStyle.pageContainer}>
 
-        <View>
-            <Text style={RateStyle.pageTitle}>Курси валют НБУ</Text>
+        <View style={RateStyle.pageTitleRow}>
+            <TextInput style={RateStyle.search}/>
+
+            <Text style={RateStyle.pageTitle}>Курси НБУ</Text>
+
             <TouchableOpacity onPress={() => setOpen(true)}>
                 <Text>{date.toDateString()}</Text>
             </TouchableOpacity>
