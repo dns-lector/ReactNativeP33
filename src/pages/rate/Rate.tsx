@@ -7,27 +7,41 @@ import DatePicker from "react-native-date-picker";
 
 export default function Rate() {
     const [rates, setRates] = useState<Array<INbuRate>>([]);
+    const [shownRates, setShownRates] = useState<Array<INbuRate>>([]);
     const [date, setDate] = useState<Date>(new Date());
     const [open, setOpen] = useState(false);
+    const [search, setSearch] = useState<string>("");
 
     useEffect(() => {
         NbuRateApi.getCurrentRates().then(setRates);
     }, []);
 
+    useEffect(() => {
+        if(search.length > 0) {
+            setShownRates(rates.filter(r => r.cc.includes(search)));
+        }
+        else {
+            setShownRates(rates);
+        }
+    }, [search, rates]);
+
     return <View style={RateStyle.pageContainer}>
 
         <View style={RateStyle.pageTitleRow}>
-            <TextInput style={RateStyle.search}/>
+            <TextInput 
+                style={RateStyle.search}
+                value={search}
+                onChangeText={setSearch}/> 
 
             <Text style={RateStyle.pageTitle}>Курси НБУ</Text>
 
             <TouchableOpacity onPress={() => setOpen(true)}>
-                <Text>{date.toDateString()}</Text>
+                <Text style={RateStyle.titleDate}>{date.toDotted()}</Text>
             </TouchableOpacity>
         </View>        
 
         <ScrollView>
-            {rates.map((rate, i) => <View key={rate.cc} 
+            {shownRates.map((rate, i) => <View key={rate.cc} 
                 style={[RateStyle.rateLine, 
                     (i & 1 ? RateStyle.rateLineOdd : RateStyle.rateLineEven)]}>
                 <Text style={RateStyle.rateCc}>{rate.cc}</Text>
@@ -52,10 +66,10 @@ export default function Rate() {
 
     </View>;
 }
+
 /*
-Д.З. Реалізувати відображення курсів валют на 
-вибрану дату. Використовувати відповідний АРІ
-https://bank.gov.ua/ua/open-data/api-dev
-зразок
-https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?date=20200302&json
+Д.З. Реалізувати фільтр курсів валют 
+з урахуванням збігів не лише за скороченням, 
+а й за повною назвою
+Переконатись у реєстронезалежності
 */

@@ -1,4 +1,4 @@
-import "";
+export {};
 
 declare global {
     interface Number {
@@ -7,5 +7,7 @@ declare global {
 }
 
 Number.prototype.pad0 = function():string {
-    let pad = this < 10 && this >= 0 ? "" : ""
+    const v = this.valueOf();
+    let pad = v < 10 && v >= 0 ? "0" : "";
+    return pad + v;
 }

@@ -12,17 +12,23 @@ const RateStyle = StyleSheet.create({
         display: "flex",
         flexDirection: "row",
         justifyContent: "space-between",
+        alignItems: "center",
     },
     search: {
         borderWidth: 1.0,
         borderColor: "#888",
+        flex: 1,
     },
     pageTitle: {
+        flex: 1,
         color: Colors.primaryTextColor,
         fontWeight: 600,
         textAlign: "center",
         fontSize: 20.0,
         marginVertical: 10.0,
+    },
+    titleDate: {
+        color: Colors.primaryTextColor,
     },
     rateLine: {
         display: "flex",
