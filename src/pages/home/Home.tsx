@@ -28,5 +28,15 @@ export default function Home() {
             <Text 
                 style={HomeStyle.navText}>Курс валют НБУ</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity 
+            style={HomeStyle.navItem} 
+            onPress={() => navigate({slug: 'anim'})}>
+            <Image 
+                source={require('../../features/asset/rate.png')}
+                style={HomeStyle.navImage}/>
+            <Text 
+                style={HomeStyle.navText}>Анімації</Text>
+        </TouchableOpacity>
     </View>;
 }
