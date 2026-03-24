@@ -13,7 +13,7 @@ export default function Anim() {
             useNativeDriver: true, 
             duration: 500,
         }).start();
-    };
+    }; 
 
     // хук-референс, що дозволяє не змінювати об'єкт при
     // перезапуску функції
@@ -49,6 +49,24 @@ export default function Anim() {
             useNativeDriver: true, 
             duration: 300,
         }).start();
+    };
+
+    // Анімації зміщення (translation)
+    const trans1Value = useRef(new Animated.Value(0.0)).current;
+    const trans1Press = () => {
+        Animated.sequence([
+            Animated.timing(trans1Value, {
+                toValue: 50.0,
+                useNativeDriver: true, 
+                duration: 300,
+            }),
+            Animated.timing(trans1Value, {
+                toValue: -50.0,
+                useNativeDriver: true, 
+                duration: 600,
+            }),
+        ]).start();
+        
     };
 
 
@@ -97,6 +115,36 @@ export default function Anim() {
                 </Animated.View>
             </Pressable>
         </View>
+
+        
+        <View style={AnimStyle.row}>            
+            <Pressable style={AnimStyle.anim} onPress={trans1Press}>
+                <Animated.View style={[
+                    AnimStyle.block,
+                    { transform: [{translateX: trans1Value}] }
+                    ]}>
+                    <View style={AnimStyle.demo}></View>
+                    <Text style={AnimStyle.subtitle}>Зміщення</Text>
+                </Animated.View>
+            </Pressable> 
+
+            <Pressable style={AnimStyle.block} onPress={scale2Press} >
+                <Animated.View style={[
+                    AnimStyle.block,
+                    { transform: [
+                        {scaleX: scale2Value},
+                        {scaleY: scale2Value.interpolate({
+                            inputRange: [1, 1.5],
+                            outputRange: [1, 1 / 1.5]
+                        })},
+                    ] }
+                    ]}>
+                    <View style={AnimStyle.demo}></View>
+                    <Text style={AnimStyle.subtitle}>Масштаб</Text>
+                </Animated.View>
+            </Pressable>
+        </View>
+
     </View>;
 };
 
