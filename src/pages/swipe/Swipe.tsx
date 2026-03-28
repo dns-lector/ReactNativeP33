@@ -3,12 +3,46 @@ import SwipeStyle from "./ui/SwipeStyle";
 import { useState } from "react";
 
 let eventBegin:GestureResponderEvent|null = null;
+const minSwipeLength = 100.0;
+const minSwipeVelocity = 100.0 / 400.0;   // 100 пікселів за 400 мілісекунд
 
 export default function Swipe() {
     const {width, height} = useWindowDimensions();
     const shortestSide = Math.min(width, height);
     const fieldSize = 0.96 * shortestSide;
+    const tileSize = fieldSize / 4.0;
     const [text, setText] = useState<string>("");
+    const [field, setField] = useState<Array<number>>(Array.from({ length: 16 }, (_, i) => (3*i + 5) % 16));
+
+    const onSwipeRight = () => {
+        let emptyTileIndex = field.findIndex(i => i == 0);
+        // свайп праворуч переміщує на порожнє місце ліву від нього тайлу
+        // технічно - поміняти місцями елементи масиву field з 
+        // індексами emptyTileIndex та emptyTileIndex-1
+        // АЛЕ не в усіх позиціях ця дія дозволена: виняток - перший стовпчик (0,4,8,12)
+        if(emptyTileIndex % 4 == 0) {
+            setText("Рух неможливий");
+            return;
+        }
+        field[emptyTileIndex] = field[emptyTileIndex - 1];
+        field[emptyTileIndex - 1] = 0;
+        setField([...field]);
+    }
+     const onSwipeLeft = () => {
+        let emptyTileIndex = field.findIndex(i => i == 0);
+        // свайп ліворуч переміщує на порожнє місце праву від нього тайлу
+        // технічно - поміняти місцями елементи масиву field з 
+        // індексами emptyTileIndex та emptyTileIndex+1
+        // АЛЕ не в усіх позиціях ця дія дозволена: виняток - останній стовпчик (3,7,11,15)
+        if(emptyTileIndex % 4 == 3) {
+            setText("Рух неможливий");
+            return;
+        }
+        field[emptyTileIndex] = field[emptyTileIndex + 1];
+        field[emptyTileIndex + 1] = 0;
+        setField([...field]);
+    }
+
 
     const onGestureBegin = (event: GestureResponderEvent) => {
         /*
@@ -19,14 +53,64 @@ export default function Swipe() {
     };
     const onGestureEnd = (event: GestureResponderEvent) => {
         if(eventBegin) {
-            setText(`dX=${ event.nativeEvent.locationX - eventBegin.nativeEvent.locationX} dY=${event.nativeEvent.locationY - eventBegin.nativeEvent.locationY}` );
+            const dx = event.nativeEvent.pageX - eventBegin.nativeEvent.pageX;
+            const dy = event.nativeEvent.pageY - eventBegin.nativeEvent.pageY;
+            const dt = event.nativeEvent.timestamp - eventBegin.nativeEvent.timestamp;
+            // є три рішення: жест є горизонтальним, вертикальним або невизначеним (у межах похибок) 
+            const lenX = Math.abs(dx);   
+            const lenY = Math.abs(dy);
+            let result = "";
+            if(lenX > 2 * lenY) {
+                result = "Horizontal: ";
+                // Горизонтальні жести також поділяємо на три варіанти:
+                // свайп ліворуч, праворуч або не свайп (закороткий або заповільний)
+                if(lenX < minSwipeLength) {
+                    result += "too short";
+                }
+                else if(lenX / dt < minSwipeVelocity) {
+                    result += "too slow";
+                }
+                else if(dx < 0) {
+                    onSwipeLeft();
+                }
+                else {
+                    onSwipeRight();
+                }
+            }
+            else if(lenY > 2 * lenX) {
+                result = "Vertical: ";
+                if(lenY < minSwipeLength) {
+                    result += "too short";
+                }
+                else if(lenY / dt < minSwipeVelocity) {
+                    result += "too slow";
+                }
+                else if(dy < 0) {
+                    result += "top";
+                }
+                else {
+                    result += "bottom";
+                }
+            }
+            else {
+                result = "Diagonal";
+            }
+            // setText( `\ndX=${dx}\ndY=${dy}\ndt=${dt}\n${result}` );
+            // setText( `${result}` );
         }        
     };
- 
-    return <View style={{flexDirection: width < height ? "column" : "row", alignItems:"center"}}>
+
+    return <View style={[SwipeStyle.pageContainer, {flexDirection: width < height ? "column" : "row"}]}>
         <Text>Swipe: {text}</Text>
         <TouchableWithoutFeedback onPressIn={onGestureBegin} onPressOut={onGestureEnd}>
-            <View style={{width: fieldSize, height: fieldSize, backgroundColor: "#555"}}></View>
+            <View style={[SwipeStyle.gameField, {width: fieldSize, height: fieldSize}]}>
+                {field.map(i => 
+                <View style={[SwipeStyle.tileContainer, {width: tileSize, height: tileSize}]}>
+                    {i != 0 && <View style={SwipeStyle.tile}>
+                        <Text style={SwipeStyle.tileText}>{i}</Text>
+                    </View>} 
+                </View>)}
+            </View>
         </TouchableWithoutFeedback>
     </View>;
 }
@@ -40,10 +124,11 @@ export default function Swipe() {
 - ... мінімальну швидкість ...
 Питання:
 чи буде залежати координатна сітка від орієнтації пристрою?
+Перевірка:
+сітка також повертається, висновок про горизонтальність 
+ прив'язується до реальної (світової) горизонталі
 
-Д.З. Створити release-збірку застосунку.
-Переіменувати результат (АРК)
-та викласти файл на загальний доступ (спробувати 
-додати як звіт з ДЗ, якщо не прикріплятиметься, то 
-дати посилання на ресурс)
+Д.З. Реалізувати анімацію переміщення:
+Свайп ліворуч - запуск анімації переміщення - по завершенні змінюємо стан (поле)
+
 */
