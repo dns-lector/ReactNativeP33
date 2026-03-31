@@ -26,6 +26,31 @@ const SwipeStyle = StyleSheet.create({
     tileText: {
         color: Colors.primaryTextColor,
         fontSize: 30.0,
+    },
+    tileTextInPlace: {
+        color: Colors.successTextColor,
+        fontSize: 32.0,
+    },
+    difficultyContainer: {
+        // marginVertical: 10.0,
+    },
+    difficultySelector: {
+        backgroundColor: "#555",
+    },
+    difficultyItem: {
+        flex: 1,
+        backgroundColor: "#454545ff",
+        alignItems: "center",
+        justifyContent: "center",
+        margin: 2.0,
+        opacity: 0.5,
+    },
+    difficultyItemSelected: {
+        flex: 1,
+        backgroundColor: "#333",
+        alignItems: "center",
+        justifyContent: "center",
+        margin: 2.0,
     }
 });
 
