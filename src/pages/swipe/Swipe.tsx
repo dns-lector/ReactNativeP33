@@ -1,11 +1,19 @@
-import { GestureResponderEvent, Pressable, Text, TouchableWithoutFeedback, useWindowDimensions, View } from "react-native";
+import { Alert, GestureResponderEvent, Modal, Pressable, Text, TouchableWithoutFeedback, useWindowDimensions, View } from "react-native";
 import SwipeStyle from "./ui/SwipeStyle"; 
-import { ReactNode, useRef, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { MoveDirection } from "./model/MoveDirection";
 
-let eventBegin:GestureResponderEvent|null = null;
-const minSwipeLength = 100.0;
-const minSwipeVelocity = 100.0 / 400.0;   // 100 пікселів за 400 мілісекунд
+interface IModalButton {    
+    title: string,
+    onPress: () => void,
+    style?: Object
+}
+
+interface IModalData {
+    title: string,
+    message: string,
+    buttons?: Array<IModalButton>,
+}
 
 export default function Swipe() {
     const {width, height} = useWindowDimensions();
@@ -13,8 +21,15 @@ export default function Swipe() {
     const fieldSize = 0.96 * shortestSide;
     const tileSize = fieldSize / 4.0;
     const [text, setText] = useState<string>("");
-    const [field, setField] = useState<Array<number>>(Array.from({ length: 16 }, (_, i) => (3*i + 5) % 16));
+    const [field, setField] = useState<Array<number>>([
+        1, 2, 3, 0,
+        5, 6, 7, 4,
+        9, 10,12,8,
+        13,14,11,15]); // (Array.from({ length: 16 }, (_, i) => (i + 1 + Math.trunc(i / 4)) % 16));
     const [difficulty, setDifficulty] = useState<number>(1);
+    const isPortrait = width < height;
+    const continueGame = useRef<boolean>(false);
+    const [modalData, setModalData] = useState<IModalData|null>(null);
 
     // #region gesture detection
     const makeMove = (direction:MoveDirection) => {
@@ -49,66 +64,91 @@ export default function Swipe() {
     const onSwipeTop = () =>  makeMove(MoveDirection.up);
     const onSwipeBottom = () =>  makeMove(MoveDirection.down);
 
-
-    const onGestureBegin = (event: GestureResponderEvent) => {
-        /*
-        event.nativeEvent.pageX/Y - відлік від меж пристрою (сторінки)
-        event.nativeEvent.locationX/Y - від меж блоку-детектора
-        */
-        eventBegin = event;
-    };
-    const onGestureEnd = (event: GestureResponderEvent) => {
-        if(eventBegin) {
-            const dx = event.nativeEvent.pageX - eventBegin.nativeEvent.pageX;
-            const dy = event.nativeEvent.pageY - eventBegin.nativeEvent.pageY;
-            const dt = event.nativeEvent.timestamp - eventBegin.nativeEvent.timestamp;
-            // є три рішення: жест є горизонтальним, вертикальним або невизначеним (у межах похибок) 
-            const lenX = Math.abs(dx);   
-            const lenY = Math.abs(dy);
-            if(lenX > 2 * lenY) {
-                // Горизонтальні жести також поділяємо на три варіанти:
-                // свайп ліворуч, праворуч або не свайп (закороткий або заповільний)
-                if(lenX < minSwipeLength) {
-                    setText("too short");
-                }
-                else if(lenX / dt < minSwipeVelocity) {
-                    setText("too slow");
-                }
-                else if(dx < 0) {
-                    onSwipeLeft();
-                }
-                else {
-                    onSwipeRight();
-                }
-            }
-            else if(lenY > 2 * lenX) {
-                if(lenY < minSwipeLength) {
-                    setText("too short");
-                }
-                else if(lenY / dt < minSwipeVelocity) {
-                    setText("too slow");
-                }
-                else if(dy < 0) {
-                    onSwipeTop();
-                }
-                else {
-                    onSwipeBottom();
-                }
-            }
-            else {
-                setText("Diagonal");
-            }
-            // setText( `\ndX=${dx}\ndY=${dy}\ndt=${dt}\n${result}` );
-        }        
-    };
     // #endregion
+    const gameOver = () => {
+        setModalData({
+            title: "Victory",
+            message: "Good!",
+            buttons: [{
+                title: "New Game",
+                onPress: () => {continueGame.current = false;},
+                style: SwipeStyle.buttonOpen
+            },{
+                title: "Continue",
+                onPress: () => {continueGame.current = true;}
+            }]
+        });
+    }
     
-    const isPortrait = width < height;
+    const gameOverAlert = () => {
+        Alert.alert('Victory', 'You win!\nStart new game or continue?', [{
+            text: 'New Game',
+            onPress: () => {
+                continueGame.current = false;
+            },
+            style: 'cancel',
+        }, {
+            text: 'Continue', 
+            onPress: () => {
+                if(difficulty < 4) {
+                    setDifficulty(difficulty + 1);
+                }
+                else {
+                    continueGame.current = true;
+                }                
+            }
+        }]);
+    };
+
+    useEffect(() => {
+        let vic = true;
+        for(let i = 0; i < 4 * difficulty; i += 1) {
+            if(field[i] != (i + 1) % 16) {
+                vic = false;
+            }
+        }
+        if(vic && !continueGame.current) {
+            gameOverAlert();
+        }
+    }, [field]);
+
+    const onDifficultyLeft  = () => {if(difficulty > 1) setDifficulty(difficulty - 1)};
+    const onDifficultyRight = () => {if(difficulty < 4) setDifficulty(difficulty + 1)};
 
     return <View style={[SwipeStyle.pageContainer, {flexDirection: isPortrait ? "column" : "row"}]}>
+        
+        <Swipeable onSwipeLeft={onDifficultyLeft} onSwipeRight={onDifficultyRight}>
+            <View style={[SwipeStyle.difficultyContainer, {
+                marginTop: isPortrait ? 40.0 : 0,
+                marginLeft: isPortrait ? 0 : 40.0,
+            }]}>
+                <View style={[SwipeStyle.difficultySelector, {
+                    flexDirection:isPortrait ? "row" : "column",
+                    height:  isPortrait ? tileSize : fieldSize,
+                    width: isPortrait ? fieldSize : tileSize,
+                }]}>
+                    <View style={[difficulty == 1 ? SwipeStyle.difficultyItemSelected : SwipeStyle.difficultyItem]}>                   
+                        <Text style={SwipeStyle.tileText}>1</Text>                   
+                    </View>
+
+                    <View style={[difficulty == 2 ? SwipeStyle.difficultyItemSelected : SwipeStyle.difficultyItem]}>                  
+                        <Text style={SwipeStyle.tileText}>2</Text>
+                    </View>
+
+                    <View style={[difficulty == 3 ? SwipeStyle.difficultyItemSelected : SwipeStyle.difficultyItem]}>
+                        <Text style={SwipeStyle.tileText}>3</Text>
+                    </View>
+
+                    <View style={[difficulty == 4 ? SwipeStyle.difficultyItemSelected : SwipeStyle.difficultyItem]}>
+                        <Text style={SwipeStyle.tileText}>4</Text> 
+                    </View>
+                </View>
+            </View>
+        </Swipeable>
+
         <Text>Swipe: {text}</Text>
 
-        <TouchableWithoutFeedback onPressIn={onGestureBegin} onPressOut={onGestureEnd}>
+        <Swipeable onSwipeRight={onSwipeRight} onSwipeLeft={onSwipeLeft} onSwipeBottom={onSwipeBottom} onSwipeTop={onSwipeTop} >
             <View style={[SwipeStyle.gameField, {width: fieldSize, height: fieldSize}]}>
                 {field.map(i => 
                 <View key={i} style={[SwipeStyle.tileContainer, {width: tileSize, height: tileSize}]}>
@@ -117,7 +157,7 @@ export default function Swipe() {
                     </View>} 
                 </View>)}
             </View>
-        </TouchableWithoutFeedback>
+        </Swipeable>
 
         <View style={[SwipeStyle.difficultyContainer, {
             marginTop: isPortrait ? 40.0 : 0,
@@ -146,9 +186,31 @@ export default function Swipe() {
             </View>
         </View>
 
-        <Swipeable onSwipeRight={onSwipeRight} >
-            <View></View>
-        </Swipeable>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalData != null}
+          onRequestClose={() => {
+            setModalData(null);
+          }}>
+          <View style={SwipeStyle.centeredView}>
+            <View style={SwipeStyle.modalView}>
+              <Text style={SwipeStyle.modalTitle}>{modalData?.title}</Text>
+              <Text style={SwipeStyle.modalText}>{modalData?.message}</Text>
+              {modalData?.buttons
+                ? modalData.buttons.map(btn => <Pressable key={btn.title}
+                    style={[SwipeStyle.button, btn.style ?? SwipeStyle.buttonClose]}
+                    onPress={() => { setModalData(null); btn.onPress() }}>
+                    <Text style={SwipeStyle.textStyle}>{btn.title}</Text>
+                </Pressable>)
+                :<Pressable
+                    style={[SwipeStyle.button, SwipeStyle.buttonClose]}
+                    onPress={() => setModalData(null)}>
+                    <Text style={SwipeStyle.textStyle}>Hide Modal</Text>
+                </Pressable>}
+            </View>
+          </View>
+        </Modal>
     </View>;
 }
 
@@ -161,6 +223,10 @@ function Swipeable(
         onSwipeBottom?:()=>void,
         onUrecognized?:(reason:string)=>void,
     children: ReactNode}) {
+
+        const minSwipeLength = 100.0;
+        const minSwipeVelocity = 100.0 / 400.0;   // 100 пікселів за 400 мілісекунд
+
         const eventBegin = useRef<GestureResponderEvent|null>(null);
 
         const onGestureBegin = (event: GestureResponderEvent) => {
